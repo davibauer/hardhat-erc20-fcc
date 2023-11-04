@@ -1,0 +1,46 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  - name: BYTECODE_EMAIL
+    value: "your-email@example.com"
+  - name: BYTECODE_PASSWORD
+    value: "your-secure-password"
+
+jobs:
+  - job: ByteCodeAnalysis
+    steps:
+      - task: ByteCodeLogin@1
+        inputs:
+          email: $(BYTECODE_EMAIL)
+          password: $(BYTECODE_PASSWORD)
+        env:
+          BYTECODE_EMAIL: $(BYTECODE_EMAIL)
+          BYTECODE_PASSWORD: $(BYTECODE_PASSWORD)
+        displayName: "ByteCode API Login"
+
+      - task: ByteCodeCreateProject@1
+        displayName: "Create ByteCode Project"
+
+      - task: ByteCodeSubmitAnalysis@1
+        displayName: "Submit Analysis to ByteCode API"
+
+      - task: ByteCodeProcessAnalysis@1
+        displayName: "Process Analysis Results in ByteCode API"
+
+      - script: |
+          if [ $(numberHighVulns) -gt 0 ]; then
+            echo "Failed: Detected $(numberHighVulns) high vulnerabilities."
+            exit 1
+          else
+            echo "No high vulnerabilities detected."
+          fi
+        displayName: "Check High Vulnerabilities"
